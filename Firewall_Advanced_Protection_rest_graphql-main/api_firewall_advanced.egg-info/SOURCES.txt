@@ -1,0 +1,9 @@
+LICENSE
+README.md
+setup.py
+api_firewall_advanced.egg-info/PKG-INFO
+api_firewall_advanced.egg-info/SOURCES.txt
+api_firewall_advanced.egg-info/dependency_links.txt
+api_firewall_advanced.egg-info/entry_points.txt
+api_firewall_advanced.egg-info/requires.txt
+api_firewall_advanced.egg-info/top_level.txt

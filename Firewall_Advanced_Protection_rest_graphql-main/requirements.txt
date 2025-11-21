@@ -1,0 +1,14 @@
+fastapi==0.117.1
+uvicorn==0.36.0
+starlette==0.48.0
+pydantic==2.11.9
+python-dotenv==1.1.1
+graphql-core==3.2.5
+strawberry-graphql==0.284.1
+streamlit==1.41.0
+plotly==5.24.1
+pandas==2.2.3
+scikit-learn==1.6.0
+joblib==1.4.2
+numpy==2.2.1
+requests==2.32.3

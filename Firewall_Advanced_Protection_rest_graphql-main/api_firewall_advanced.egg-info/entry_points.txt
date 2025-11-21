@@ -1,0 +1,4 @@
+[console_scripts]
+api-firewall = backend.main:main
+firewall-dashboard = dashboard:main
+firewall-test = test_firewall:main
