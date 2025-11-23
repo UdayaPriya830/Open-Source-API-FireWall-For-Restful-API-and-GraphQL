@@ -51,6 +51,25 @@ COMMAND_INJECTION_PATTERNS = [
     re.compile(r"(?i)%[0-9a-f]{2}")
 ]
 
+PROMPT_INJECTION_PATTERNS = [
+    re.compile(r"(?i)ignore\s+(previous|all|your)\s+(instructions|prompts|rules)"),
+    re.compile(r"(?i)forget\s+(everything|all)\s+(above|before|previous)"),
+    re.compile(r"(?i)system\s*:\s*you\s+are\s+now"),
+    re.compile(r"(?i)\[\s*system\s*\].*?\[\s*/\s*system\s*\]"),
+    re.compile(r"(?i)act\s+as\s+(if\s+you\s+are|a)\s+(different|new)"),
+    re.compile(r"(?i)pretend\s+(to\s+be|you\s+are)"),
+    re.compile(r"(?i)roleplay\s+as"),
+    re.compile(r"(?i)override\s+(your|the)\s+(instructions|rules|system)"),
+    re.compile(r"(?i)\\n\\n.*?human\\s*:"),
+    re.compile(r"(?i)assistant\s*:\s*i\s+(will|can)\s+help"),
+    re.compile(r"(?i)jailbreak\s+(the|this)\s+(ai|model|system)"),
+    re.compile(r"(?i)\bdan\s+mode\b"),
+    re.compile(r"(?i)developer\s+mode\s+(enabled|on)"),
+    re.compile(r"(?i)\[\s*jailbreak\s*\]"),
+    re.compile(r"(?i)simulate\s+(being|a)\s+(different|evil)"),
+    re.compile(r"(?i)\\\\n\\\\n.*?user\\\\s*:")
+]
+
 # ---------------- Enhanced Detection Functions ---------------- #
 def detect_sql_injection(data: str) -> bool:
     """Detect SQL Injection patterns in data."""
@@ -63,6 +82,10 @@ def detect_xss(data: str) -> bool:
 def detect_command_injection(data: str) -> bool:
     """Detect Command Injection patterns in data."""
     return any(p.search(data) for p in COMMAND_INJECTION_PATTERNS)
+
+def detect_prompt_injection(data: str) -> bool:
+    """Detect Prompt Injection attack patterns in data."""
+    return any(p.search(data) for p in PROMPT_INJECTION_PATTERNS)
 
 def detect_path_traversal(data: str) -> bool:
     """Detect Path Traversal attacks."""
@@ -96,6 +119,8 @@ def detect_threat(data: str) -> str:
         return "XSS Attack"
     elif detect_command_injection(scan_data):
         return "Command Injection"
+    elif detect_prompt_injection(scan_data):
+        return "Prompt Injection"
     elif detect_path_traversal(scan_data):
         return "Path Traversal"
     elif len(scan_data) > 10000:  # Large payload check
