@@ -70,6 +70,62 @@ PROMPT_INJECTION_PATTERNS = [
     re.compile(r"(?i)\\\\n\\\\n.*?user\\\\s*:")
 ]
 
+# OWASP Top 10 - Additional Patterns
+BROKEN_ACCESS_CONTROL_PATTERNS = [
+    re.compile(r"(?i)\.\./(.*/)*(etc|passwd|shadow)"),
+    re.compile(r"(?i)/admin|/administrator|/root"),
+    re.compile(r"(?i)user_id=\d+.*user_id=\d+"),  # Parameter pollution
+    re.compile(r"(?i)role=admin|role=root|role=superuser")
+]
+
+CRYPTO_FAILURE_PATTERNS = [
+    re.compile(r"(?i)(password|pwd|pass)\s*=\s*['\"][^'\"]{1,8}['\"]")
+]
+
+INSECURE_DESIGN_PATTERNS = [
+    re.compile(r"(?i)debug=true|debug=1"),
+    re.compile(r"(?i)test=true|test=1"),
+    re.compile(r"(?i)admin=true|admin=1")
+]
+
+SECURITY_MISCONFIG_PATTERNS = [
+    re.compile(r"(?i)\bdefault\b.*\b(password|pwd|pass)\b"),
+    re.compile(r"(?i)\b(admin|root|test):(admin|root|test|password|123456)\b")
+]
+
+VULNERABLE_COMPONENTS_PATTERNS = [
+    re.compile(r"(?i)version\s*[=:]\s*['\"]?\d+\.\d+\.\d+['\"]?"),
+    re.compile(r"(?i)jquery.*1\.[0-7]\."),  # Old jQuery versions
+    re.compile(r"(?i)apache.*2\.[0-2]\.")   # Old Apache versions
+]
+
+AUTH_FAILURE_PATTERNS = [
+    re.compile(r"(?i)session_id=.*session_id="),  # Session fixation
+    re.compile(r"(?i)remember_me=true.*password="),
+    re.compile(r"(?i)auto_login=true|auto_login=1")
+]
+
+INTEGRITY_FAILURE_PATTERNS = [
+    re.compile(r"(?i)eval\s*\("),
+    re.compile(r"(?i)exec\s*\("),
+    re.compile(r"(?i)system\s*\("),
+    re.compile(r"(?i)shell_exec\s*\(")
+]
+
+LOGGING_FAILURE_PATTERNS = [
+    re.compile(r"(?i)log_level\s*=\s*(debug|trace)"),
+    re.compile(r"(?i)disable.*log"),
+    re.compile(r"(?i)no.*audit")
+]
+
+SSRF_PATTERNS = [
+    re.compile(r"(?i)url\s*=\s*['\"]?https?://localhost"),
+    re.compile(r"(?i)url\s*=\s*['\"]?https?://127\.0\.0\.1"),
+    re.compile(r"(?i)url\s*=\s*['\"]?https?://192\.168\."),
+    re.compile(r"(?i)url\s*=\s*['\"]?https?://10\."),
+    re.compile(r"(?i)url\s*=\s*['\"]?file://")
+]
+
 # ---------------- Enhanced Detection Functions ---------------- #
 def detect_sql_injection(data: str) -> bool:
     """Detect SQL Injection patterns in data."""
@@ -86,6 +142,43 @@ def detect_command_injection(data: str) -> bool:
 def detect_prompt_injection(data: str) -> bool:
     """Detect Prompt Injection attack patterns in data."""
     return any(p.search(data) for p in PROMPT_INJECTION_PATTERNS)
+
+# OWASP Top 10 Detection Functions
+def detect_broken_access_control(data: str) -> bool:
+    """OWASP #1 - Broken Access Control"""
+    return any(p.search(data) for p in BROKEN_ACCESS_CONTROL_PATTERNS)
+
+def detect_crypto_failure(data: str) -> bool:
+    """OWASP #2 - Cryptographic Failures"""
+    return any(p.search(data) for p in CRYPTO_FAILURE_PATTERNS)
+
+def detect_insecure_design(data: str) -> bool:
+    """OWASP #4 - Insecure Design"""
+    return any(p.search(data) for p in INSECURE_DESIGN_PATTERNS)
+
+def detect_security_misconfiguration(data: str) -> bool:
+    """OWASP #5 - Security Misconfiguration"""
+    return any(p.search(data) for p in SECURITY_MISCONFIG_PATTERNS)
+
+def detect_vulnerable_components(data: str) -> bool:
+    """OWASP #6 - Vulnerable and Outdated Components"""
+    return any(p.search(data) for p in VULNERABLE_COMPONENTS_PATTERNS)
+
+def detect_auth_failure(data: str) -> bool:
+    """OWASP #7 - Identification and Authentication Failures"""
+    return any(p.search(data) for p in AUTH_FAILURE_PATTERNS)
+
+def detect_integrity_failure(data: str) -> bool:
+    """OWASP #8 - Software and Data Integrity Failures"""
+    return any(p.search(data) for p in INTEGRITY_FAILURE_PATTERNS)
+
+def detect_logging_failure(data: str) -> bool:
+    """OWASP #9 - Security Logging and Monitoring Failures"""
+    return any(p.search(data) for p in LOGGING_FAILURE_PATTERNS)
+
+def detect_ssrf(data: str) -> bool:
+    """OWASP #10 - Server-Side Request Forgery"""
+    return any(p.search(data) for p in SSRF_PATTERNS)
 
 def detect_path_traversal(data: str) -> bool:
     """Detect Path Traversal attacks."""
@@ -112,18 +205,36 @@ def detect_threat(data: str) -> str:
     except json.JSONDecodeError:
         scan_data = data
 
-    # Check for various attack patterns
+    # Check for various attack patterns (OWASP Top 10 Coverage)
     if detect_sql_injection(scan_data):
-        return "SQL Injection"
+        return "SQL Injection (OWASP #3)"
     elif detect_xss(scan_data):
-        return "XSS Attack"
+        return "XSS Attack (OWASP #3)"
+    elif detect_broken_access_control(scan_data):
+        return "Broken Access Control (OWASP #1)"
+    elif detect_crypto_failure(scan_data):
+        return "Cryptographic Failure (OWASP #2)"
+    elif detect_insecure_design(scan_data):
+        return "Insecure Design (OWASP #4)"
+    elif detect_security_misconfiguration(scan_data):
+        return "Security Misconfiguration (OWASP #5)"
+    elif detect_vulnerable_components(scan_data):
+        return "Vulnerable Components (OWASP #6)"
+    elif detect_auth_failure(scan_data):
+        return "Authentication Failure (OWASP #7)"
+    elif detect_integrity_failure(scan_data):
+        return "Integrity Failure (OWASP #8)"
+    elif detect_logging_failure(scan_data):
+        return "Logging Failure (OWASP #9)"
+    elif detect_ssrf(scan_data):
+        return "SSRF Attack (OWASP #10)"
     elif detect_command_injection(scan_data):
         return "Command Injection"
     elif detect_prompt_injection(scan_data):
-        return "Prompt Injection"
+        return "Prompt Injection (AI/LLM)"
     elif detect_path_traversal(scan_data):
         return "Path Traversal"
-    elif len(scan_data) > 10000:  # Large payload check
+    elif len(scan_data) > 10000:
         return "Payload Too Large"
 
     return ""

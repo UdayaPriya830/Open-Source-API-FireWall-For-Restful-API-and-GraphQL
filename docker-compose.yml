@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # API Firewall Service
+  api-firewall:
+    build: .
+    container_name: api-firewall
+    ports:
+      - "8000:8000"  # Firewall API
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./logs:/app/logs
+      - ./config:/app/config
+    networks:
+      - firewall-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Dashboard Service
+  dashboard:
+    build: .
+    container_name: firewall-dashboard
+    command: ["streamlit", "run", "dashboard.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    ports:
+      - "8501:8501"  # Dashboard
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - firewall-network
+    depends_on:
+      - api-firewall
+    restart: unless-stopped
+
+  # Example Protected API (for testing)
+  test-api:
+    image: httpbin/httpbin
+    container_name: test-api
+    ports:
+      - "8080:80"
+    networks:
+      - firewall-network
+    restart: unless-stopped
+
+  # Redis for caching (optional enhancement)
+  redis:
+    image: redis:7-alpine
+    container_name: firewall-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - firewall-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+
+networks:
+  firewall-network:
+    driver: bridge
+    name: firewall-network
+
+volumes:
+  redis-data:
+    driver: local
